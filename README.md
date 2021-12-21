@@ -1,15 +1,15 @@
 # Modified code from https://github.com/Vydia/react-native-background-upload.
 
+# Modified code from https://github.com/HomeskilletHealthInc/react-native-background-upload.
+
 iOS only background uploader which supports network requests to continue even when the app goes to background. Supports both raw and multipart uploads (file size limits might apply).
 In addition, provides methods to request more background time to the OS in order to continue running for longer periods of time. Alternatively,the app can just be waken up after the upload is done. Note that if both features are combined, background time/wake ups will be reduced.
-
 
 # Installation
 
 ## 1. Install package
 
-Add to packages.json: "react-native-background-upload": "github:cristianoccazinsp/react-native-background-upload"
-
+Add to packages.json: "react-native-background-upload": "github:FeoSilva/react-native-background-upload"
 
 ## 2. Link Native Code
 
@@ -18,11 +18,10 @@ Add to packages.json: "react-native-background-upload": "github:cristianoccazins
 NO LONGER NEEDED. RN 0.60 will auto link. Header import is still needed if we want to listen to events
 `react-native link react-native-background-upload`
 
-
 # Usage
 
 ```js
-import Upload from 'react-native-background-upload'
+import Upload from 'react-native-background-upload';
 
 const options = {
   url: 'https://myservice.com/path/to/post',
@@ -31,38 +30,40 @@ const options = {
   type: 'raw',
   headers: {
     'content-type': 'application/octet-stream', // Customize content-type
-    'my-custom-header': 's3headervalueorwhateveryouneed'
-  }
-}
+    'my-custom-header': 's3headervalueorwhateveryouneed',
+  },
+};
 
-Upload.startUpload(options).then((uploadId) => {
-  console.log('Upload started')
-  Upload.addListener('progress', uploadId, (data) => {
-    console.log(`Progress: ${data.progress}%`)
+Upload.startUpload(options)
+  .then((uploadId) => {
+    console.log('Upload started');
+    Upload.addListener('progress', uploadId, (data) => {
+      console.log(`Progress: ${data.progress}%`);
+    });
+    Upload.addListener('error', uploadId, (data) => {
+      console.log(`Error: ${data.error}%`);
+    });
+    Upload.addListener('cancelled', uploadId, (data) => {
+      console.log(`Cancelled!`);
+    });
+    Upload.addListener('completed', uploadId, (data) => {
+      // data includes responseCode: number, responseBody: Object, responseHeaders: Lower cased http headers
+      console.log('Completed!');
+    });
   })
-  Upload.addListener('error', uploadId, (data) => {
-    console.log(`Error: ${data.error}%`)
-  })
-  Upload.addListener('cancelled', uploadId, (data) => {
-    console.log(`Cancelled!`)
-  })
-  Upload.addListener('completed', uploadId, (data) => {
-    // data includes responseCode: number, responseBody: Object, responseHeaders: Lower cased http headers
-    console.log('Completed!')
-  })
-}).catch((err) => {
-  console.log('Upload error!', err)
-})
+  .catch((err) => {
+    console.log('Upload error!', err);
+  });
 ```
 
 ## Multipart Uploads - Complete example with cleanup
 
-Just set the `type` option to `multipart` and set the `field` option.  Example:
+Just set the `type` option to `multipart` and set the `field` option. Example:
 
 ```js
 import RNBackgroundUpload from 'react-native-background-upload';
 
-const resolveUpload = function(uploadId){
+const resolveUpload = function (uploadId) {
   return new Promise((resolve, reject) => {
     let l1 = RNBackgroundUpload.addListener('error', uploadId, (data) => {
       reject(data);
@@ -77,20 +78,22 @@ const resolveUpload = function(uploadId){
       cleanup();
     });
     let cleanup = () => {
-      l1.remove(); l2.remove(); l3.remove();
-    }
+      l1.remove();
+      l2.remove();
+      l3.remove();
+    };
   });
-}
+};
 
 const headers = {
-  'Authorization': authString,
-  'Content-Type': 'multipart/form-data'
-}
+  Authorization: authString,
+  'Content-Type': 'multipart/form-data',
+};
 
 const uploadUrl = 'some url';
 const uri = 'file://path/to/file';
 const formData = {
-  someKey: 'someValue'
+  someKey: 'someValue',
 };
 
 const options = {
@@ -101,51 +104,48 @@ const options = {
   headers: headers,
   type: 'multipart',
   parameters: formData,
-  customUploadId: `u-${new Date().getTime()}`
-}
+  customUploadId: `u-${new Date().getTime()}`,
+};
 
 let res;
 let responseData = null;
 
-try{
+try {
   await RNBackgroundUpload.startUpload(options);
   res = await resolveUpload(options.customUploadId);
-
-}
-catch(err){
+} catch (err) {
   throw {
     status: -1,
     _error: err,
     data: {
-      'code':null,
-      'detail': null,
-      'message': "Network error"
-    }
+      code: null,
+      detail: null,
+      message: 'Network error',
+    },
   };
 }
 
 responseData = res.responseBody;
 
-
-if(res.responseCode >= 400){
+if (res.responseCode >= 400) {
   throw {
     _error: res,
     status: res.responseCode,
-    data: api.processError(responseData)
+    data: api.processError(responseData),
   };
-}
-else{
+} else {
   return {
     data: responseData,
     status: res.responseCode,
-    _response: res
-  }
+    _response: res,
+  };
 }
 ```
 
 Note the `field` property is required for multipart uploads.
 
 # API
+
 TODO
 
 # canSuspendIfBackground()
@@ -156,32 +156,46 @@ Notify the OS that your app can sleep again. Call this method when your app has 
 
 Here are a few common situations and how to handle them:
 
- - Uploads are finished (completed, error or cancelled) and your app does not need to do any more work. You should call `canSuspendIfBackground` after receiving the events.
+- Uploads are finished (completed, error or cancelled) and your app does not need to do any more work. You should call `canSuspendIfBackground` after receiving the events.
 
- - Uploads are finished (completed, error or cancelled) and your app needs to run some computation or make a network request. You should call `canSuspendIfBackground` after the computation or network call is done.
+- Uploads are finished (completed, error or cancelled) and your app needs to run some computation or make a network request. You should call `canSuspendIfBackground` after the computation or network call is done.
 
- - Uploads are finished (completed, error or cancelled) and your app needs to upload some more. You call `startUpload` a number of times and add your listeners. You should call `canSuspendIfBackground` after the uploads start but not wait for them to finish. You also need to call `canSuspendIfBackground` after you have received the events, even if some uploads are cancelled or fail:
+- Uploads are finished (completed, error or cancelled) and your app needs to upload some more. You call `startUpload` a number of times and add your listeners. You should call `canSuspendIfBackground` after the uploads start but not wait for them to finish. You also need to call `canSuspendIfBackground` after you have received the events, even if some uploads are cancelled or fail:
 
 ```javascript
-import { addListener, startUpload, canSuspendIfBackground } from 'react-native-background-upload';
+import {
+  addListener,
+  startUpload,
+  canSuspendIfBackground,
+} from 'react-native-background-upload';
 
 function listenForUploadCompletion(uploadId) {
   return new Promise((resolve, reject) => {
     addListener('error', uploadId, reject);
-    addListener('cancelled', uploadId, () => reject(new Error('upload cancelled')));
-    addListener('completed', uploadId, ({ responseCode, responseBody }) => {
+    addListener('cancelled', uploadId, () =>
+      reject(new Error('upload cancelled')),
+    );
+    addListener('completed', uploadId, ({responseCode, responseBody}) => {
       if (200 <= responseCode && responseCode <= 299) {
-          resolve(uploadId);
+        resolve(uploadId);
       } else {
-          reject(new Error(`Could not upload file (${responseCode}):\n${responseBody}`));
+        reject(
+          new Error(
+            `Could not upload file (${responseCode}):\n${responseBody}`,
+          ),
+        );
       }
     });
   });
 }
 
 async function uploadFilesWhileInBackground(url, files) {
-  const uploadIds = await Promise.all(files.map(path => startUpload({ path, url })));
-  const didUploadPromise = Promise.all(uploadIds.map(id => listenForUploadCompletion(id)));
+  const uploadIds = await Promise.all(
+    files.map((path) => startUpload({path, url})),
+  );
+  const didUploadPromise = Promise.all(
+    uploadIds.map((id) => listenForUploadCompletion(id)),
+  );
   // suspend after event listeners are added
   canSuspendIfBackground();
   try {
@@ -193,7 +207,6 @@ async function uploadFilesWhileInBackground(url, files) {
   canSuspendIfBackground();
 }
 ```
-
 
 # iOS Background Events
 
@@ -218,27 +231,47 @@ Here is a JS example:
 import RNBackgroundUpload from 'react-native-background-upload';
 
 async function uploadFile(url, fileURI) {
-  const uploadId = await RNBackgroundUpload.startUpload({ url, path: fileURI, method: 'POST' });
+  const uploadId = await RNBackgroundUpload.startUpload({
+    url,
+    path: fileURI,
+    method: 'POST',
+  });
   return new Promise((resolve, reject) => {
     RNBackgroundUpload.addListener('error', uploadId, reject);
-    RNBackgroundUpload.addListener('cancelled', uploadId, () => reject(new Error('upload cancelled')));
-    RNBackgroundUpload.addListener('completed', uploadId, ({ responseCode, responseBody }) => {
-      if (200 <= responseCode && responseCode <= 299) {
+    RNBackgroundUpload.addListener('cancelled', uploadId, () =>
+      reject(new Error('upload cancelled')),
+    );
+    RNBackgroundUpload.addListener(
+      'completed',
+      uploadId,
+      ({responseCode, responseBody}) => {
+        if (200 <= responseCode && responseCode <= 299) {
           resolve(uploadId);
-      } else {
-          reject(new Error(`Could not upload file (${responseCode}):\n${responseBody}`));
-      }
-    });
+        } else {
+          reject(
+            new Error(
+              `Could not upload file (${responseCode}):\n${responseBody}`,
+            ),
+          );
+        }
+      },
+    );
   });
 }
 
 async function uploadManyFilesThenPOST(files) {
   try {
-    await Promise.all(files.map(fileURI => uploadFile('https://example.com/upload', fileURI)));
-    const response = await fetch('https://example.com/confirmUploads', { method: 'POST' });
+    await Promise.all(
+      files.map((fileURI) => uploadFile('https://example.com/upload', fileURI)),
+    );
+    const response = await fetch('https://example.com/confirmUploads', {
+      method: 'POST',
+    });
     if (!response.ok) throw new Error('Could not confirm uploads');
   } catch (error) {
-    const response = await fetch('https://example.com/failedUploads', { method: 'POST' });
+    const response = await fetch('https://example.com/failedUploads', {
+      method: 'POST',
+    });
     if (!response.ok) throw new Error('Could not report failed uploads');
   }
   RNBackgroundUpload.canSuspendIfBackground();
@@ -253,8 +286,8 @@ Uploads tasks started when the app is in the background are [discretionary](http
 
 If your app is dead when uploads complete (force-closed by the user via the app switcher or by the OS to reclaim memory), iOS will launch it in the background. The above example does not handle this case, i.e. there will be no `POST` to `https://example.com/confirmUploads`. To support this you should save the `uploadId`(s) to a file (e.g. via `AsyncStorage`), read it when your app starts, and add the 3 listeners back.
 
-
 # iOS Background time request
+
 Use this if background events are not enough and you need even more time.
 
 ```js
@@ -265,23 +298,26 @@ let taskId = await RNBackgroundUpload.beginBackgroundTask();
 
 // Listen to background time is about to expire events. You can do some cleanup here. You will have about 3 to 4 seconds to run code
 // before the app goes to sleep
-let bgExpiredRelease = RNBackgroundUpload.addListener('bgExpired', null, (data) => {
-  if(this.working && (!taskId || data.id == taskId)){
-    // do some cleanup
-  }
-});
+let bgExpiredRelease = RNBackgroundUpload.addListener(
+  'bgExpired',
+  null,
+  (data) => {
+    if (this.working && (!taskId || data.id == taskId)) {
+      // do some cleanup
+    }
+  },
+);
 
 // run background code, do uploads, or even regular fetch requests
 
 // tell the OS we are done. If you don't call this, your app will still be put to sleep internally
 // to avoid it from being killed
-if(taskId !== null){
+if (taskId !== null) {
   await RNBackgroundUpload.endBackgroundTask(taskId);
 }
-if(bgExpiredRelease){
+if (bgExpiredRelease) {
   bgExpiredRelease.remove();
 }
-
 ```
 
 ## Gratitude
