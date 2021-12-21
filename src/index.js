@@ -31,7 +31,8 @@ export type StartUploadArgs = {
   notification?: NotificationArgs,
 };
 
-const NativeModule = NativeModules.VydiaRNFileUploader;
+const NativeModule =
+  NativeModules.VydiaRNFileUploader || NativeModules.RNFileUploader; // iOS is VydiaRNFileUploader and Android is RNFileUploader
 const eventPrefix = 'RNFileUploader-';
 
 const eventEmitter = new NativeEventEmitter(NativeModule);
