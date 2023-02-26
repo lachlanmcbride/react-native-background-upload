@@ -2,6 +2,8 @@
 
 # Modified code from https://github.com/HomeskilletHealthInc/react-native-background-upload.
 
+# Modified code from https://github.com/FeoSilva/react-native-background-upload.
+
 iOS only background uploader which supports network requests to continue even when the app goes to background. Supports both raw and multipart uploads (file size limits might apply).
 In addition, provides methods to request more background time to the OS in order to continue running for longer periods of time. Alternatively,the app can just be waken up after the upload is done. Note that if both features are combined, background time/wake ups will be reduced.
 
@@ -9,7 +11,7 @@ In addition, provides methods to request more background time to the OS in order
 
 ## 1. Install package
 
-Add to packages.json: "react-native-background-upload": "github:FeoSilva/react-native-background-upload"
+Add to packages.json: "react-native-background-upload": "github:tomasswood/react-native-background-upload"
 
 ## 2. Link Native Code
 
